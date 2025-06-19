@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 von 10 Spiel</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #a8c0ff, #3f2b96);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden; /* Prevent scrollbar from background animation */
+        }
+        /* Subtle background animation */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: moveBackground 20s infinite alternate;
+            z-index: -1;
+        }
+        @keyframes moveBackground {
+            0% { background-position: 0% 0%, 100% 100%; }
+            100% { background-position: 100% 100%, 0% 0%; }
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px); /* Stronger blur */
+            border-radius: 30px; /* Even more rounded corners */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25); /* Stronger, softer shadow */
+            padding: 40px;
+            max-width: 650px; /* Slightly wider */
+            width: 100%;
+            text-align: center;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            border: 1px solid rgba(255, 255, 255, 0.4); /* More visible subtle border */
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-8px); /* More pronounced lift */
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+        }
+        .card.pop-animation {
+            animation: popIn 0.3s ease-out; /* Reduced duration */
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Text shadow for title */
+        }
+
+        .statement-container {
+            min-height: 120px; /* Ensure sufficient space for longer texts */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative; /* Keep relative for child transitions/positioning */
+            overflow: hidden; /* Hide overflowing text during transition */
+        }
+        .statement-text {
+            font-size: 2rem; /* Larger font size */
+            font-weight: 700; /* Bolder */
+            color: #222;
+            line-height: 1.4;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Reduced duration */
+            width: 100%; /* Ensure it takes full width of container */
+            padding: 0 10px;
+            box-sizing: border-box;
+            text-align: center; /* Ensure text is centered */
+        }
+        .statement-text.fade-out {
+            opacity: 0;
+            transform: translateY(-20px); /* Slide up on fade out */
+        }
+        .statement-text.fade-in {
+            opacity: 1;
+            transform: translateY(0); /* Slide in on fade in */
+        }
+
+        .prefix-female {
+            color: #e91e63; /* Pink for female */
+        }
+        .prefix-male {
+            color: #2196f3; /* Blue for male */
+        }
+
+        .generate-button {
+            background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 18px 35px; /* Larger padding */
+            border-radius: 50px;
+            font-size: 1.2rem; /* Larger font */
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1.5px; /* More spacing */
+            text-transform: uppercase; /* Uppercase text */
+        }
+        .generate-button:hover {
+            transform: translateY(-5px); /* More lift on hover */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, #2575fc 0%, #6a11cb 100%);
+        }
+        .generate-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .generate-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3); /* Brighter ripple */
+            border-radius: 50%;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease; /* Slower ripple */
+        }
+        .generate-button:active::after {
+            width: 250%;
+            height: 250%;
+            opacity: 1;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px; /* More space between radios */
+            margin-bottom: 25px;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            justify-content: center;
+        }
+        .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 25px; /* More padding */
+            border-radius: 25px; /* More rounded */
+            border: 2px solid #a0a0a0; /* Slightly darker border */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #444;
+            background-color: #f0f0f0; /* Light background */
+            position: relative;
+            overflow: hidden;
+        }
+        .radio-group input[type="radio"]:checked + label {
+            background-color: #2575fc;
+            border-color: #2575fc;
+            color: white;
+            box-shadow: 0 6px 15px rgba(37, 117, 252, 0.5); /* Stronger shadow */
+            transform: translateY(-2px);
+        }
+        .radio-group label:hover {
+            border-color: #6a11cb;
+            color: #6a11cb;
+            transform: translateY(-1px);
+        }
+        .radio-group input[type="radio"] {
+            display: none;
+        }
+        .radio-group label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: transform 0.4s ease;
+            transform: translateX(-100%);
+        }
+        .radio-group label:hover::before {
+            transform: translateX(0);
+        }
+        .radio-group input[type="radio"]:checked + label::after {
+            content: '✓'; /* Checkmark */
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: white;
+        }
+
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3); /* White spinner */
+            border-left-color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        .loading-spinner.active {
+            display: block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message-box {
+            position: fixed;
+            top: 30px; /* Slightly lower */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px; /* More rounded */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out; /* Slower transition */
+            font-weight: 600;
+            min-width: 250px;
+            text-align: center;
+        }
+        .message-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .card {
+                padding: 30px;
+                border-radius: 20px;
+            }
+            .statement-text {
+                font-size: 1.6rem; /* Adjust for tablet */
+            }
+            .radio-group {
+                gap: 10px;
+            }
+            .radio-group label {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+            .generate-button {
+                padding: 15px 30px;
+                font-size: 1.0rem;
+            }
+            h1 {
+                font-size: 3rem; /* Adjust for tablet */
+            }
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            .card {
+                padding: 25px;
+                border-radius: 15px;
+            }
+            h1 {
+                font-size: 2.5rem; /* Adjust for mobile */
+                margin-bottom: 20px;
+            }
+            .statement-container {
+                min-height: 100px;
+            }
+            .statement-text {
+                font-size: 1.3rem; /* Adjust for mobile */
+            }
+            .radio-group {
+                flex-direction: column; /* Stack radios vertically */
+                gap: 8px;
+            }
+            .radio-group label {
+                width: 100%; /* Full width for stacked radios */
+                justify-content: center; /* Center text in full-width labels */
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+            .generate-button {
+                padding: 12px 25px;
+                font-size: 0.95rem;
+            }
+            .message-box {
+                width: 90%;
+                left: 5%;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-5">
+
+    <div id="game-card" class="card relative flex flex-col items-center gap-8">
+        <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 mb-6">
+            10 von 10 Spiel
+        </h1>
+
+        <div class="radio-group flex gap-4 mb-6">
+            <input type="radio" id="genderFemale" name="gender" value="female" checked>
+            <label for="genderFemale">Sie ist eine 10/10 aber sie...</label>
+
+            <input type="radio" id="genderMale" name="gender" value="male">
+            <label for="genderMale">Er ist eine 10/10 aber er...</label>
+
+            <input type="radio" id="genderAlternating" name="gender" value="alternating">
+            <label for="genderAlternating">Abwechselnd</label>
+        </div>
+
+        <div id="statementContainer" class="statement-container">
+            <div id="statementDisplay" class="statement-text">
+                Wähle eine Kategorie und klicke auf "Neue Aussage"!
+            </div>
+        </div>
+
+
+        <button id="generateBtn" class="generate-button flex items-center justify-content-center gap-2">
+            Neue Aussage
+            <div id="loadingSpinner" class="loading-spinner"></div>
+        </button>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <script>
+        // Global variables for statements
+        let shuffledFemaleStatements = [];
+        let shuffledMaleStatements = [];
+        let femaleStatementCounter = 0;
+        let maleStatementCounter = 0;
+        let currentGenderMode = 'female'; // Default selection
+        let lastDisplayedGender = ''; // To manage alternating mode
+        let isGeneratingAIStatements = false; // Flag to prevent multiple concurrent API calls
+
+        const statementDisplay = document.getElementById('statementDisplay');
+        const generateBtn = document.getElementById('generateBtn');
+        const genderRadios = document.querySelectorAll('input[name="gender"]');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const messageBox = document.getElementById('messageBox');
+        const gameCard = document.getElementById('game-card'); // Get the game card for animation
+
+        // Shuffle arrays Fisher-Yates algorithm
+        function shuffleArray(array) {
+            const newArray = [...array]; // Create a shallow copy to shuffle
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Function to display messages (instead of alert)
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.className = `message-box show bg-${type === 'success' ? 'green-500' : 'blue-500'}`;
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        // Function to fetch AI-generated statements
+        async function fetchAIGeneratedStatements(gender) {
+            if (isGeneratingAIStatements) {
+                console.log("AI statement generation already in progress.");
+                return;
+            }
+
+            isGeneratingAIStatements = true;
+            loadingSpinner.classList.add('active'); // Show spinner during AI generation
+            generateBtn.disabled = true; // Disable button
+
+            // Show a prominent loading message on the main display
+            statementDisplay.classList.remove('fade-in');
+            statementDisplay.classList.add('fade-out');
+            await new Promise(resolve => setTimeout(resolve, 300)); // Small delay for fade-out
+            statementDisplay.innerHTML = `<span class="text-sm text-gray-500">Lade neue Aussagen von der KI...</span>`;
+            statementDisplay.classList.remove('fade-out');
+            statementDisplay.classList.add('fade-in');
+
+
+            let promptText = "";
+            if (gender === 'female') {
+                promptText = "Generiere 5 einzigartige, kurze, humorvolle und leicht negative Aussagen, die direkt nach dem Präfix 'aber sie ' passen würden, für eine Person, die 'eine 10 von 10' ist. Beginne jede Aussage direkt mit dem passenden Verb oder Substantiv, ohne 'aber sie '. Stelle sicher, dass sie auf Deutsch sind.";
+            } else {
+                promptText = "Generiere 5 einzigartige, kurze, humorvolle und leicht negative Aussagen, die direkt nach dem Präfix 'aber er ' passen würden, für eine Person, die 'eine 10 von 10' ist. Beginne jede Aussage direkt mit dem passenden Verb oder Substantiv, ohne 'aber er '. Stelle sicher, dass sie auf Deutsch sind.";
+            }
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: { "type": "STRING" }
+                        }
+                    }
+                };
+                const apiKey = "AIzaSyC6jGELwe_LcImqt7fGybNnJeKfHvMq5hw"; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                console.log("AI Response:", result);
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const jsonString = result.candidates[0].content.parts[0].text;
+                    let parsedStatements = JSON.parse(jsonString);
+
+                    // Clean up statements just in case the AI still included prefixes
+                    parsedStatements = parsedStatements.map(stmt => {
+                        let cleanedStmt = stmt.replace(/^aber sie\s*/i, '').replace(/^aber er\s*/i, '').trim();
+                        // Ensure it starts with a lowercase letter if it's not a proper noun
+                        if (cleanedStmt.length > 0 && cleanedStmt[0] === cleanedStmt[0].toUpperCase() && !(['Er', 'Sie'].includes(cleanedStmt.split(' ')[0]))) {
+                            cleanedStmt = cleanedStmt[0].toLowerCase() + cleanedStmt.slice(1);
+                        }
+                        return cleanedStmt;
+                    });
+
+
+                    if (gender === 'female') {
+                        shuffledFemaleStatements = shuffleArray(parsedStatements);
+                        femaleStatementCounter = 0;
+                    } else {
+                        shuffledMaleStatements = shuffleArray(parsedStatements);
+                        maleStatementCounter = 0;
+                    }
+                    showMessage("Neue Aussagen generiert!", 'success');
+                } else {
+                    showMessage("Fehler: Konnte keine Aussagen von der KI generieren. Versuche es erneut.", 'info');
+                    console.error("AI response structure unexpected:", result);
+                    if (gender === 'female') shuffledFemaleStatements = [];
+                    else shuffledMaleStatements = [];
+                }
+            } catch (error) {
+                showMessage("Fehler beim Abrufen der Aussagen. Netzwerkproblem oder API-Fehler.", 'info');
+                console.error("Error fetching AI statements:", error);
+                if (gender === 'female') shuffledFemaleStatements = [];
+                else shuffledMaleStatements = [];
+            } finally {
+                isGeneratingAIStatements = false;
+                loadingSpinner.classList.remove('active');
+                generateBtn.disabled = false;
+            }
+        }
+
+        // Initialize statements: Fetch initial batch for default mode
+        async function initializeStatements() {
+            shuffledFemaleStatements = [];
+            shuffledMaleStatements = [];
+            femaleStatementCounter = 0;
+            maleStatementCounter = 0;
+            lastDisplayedGender = ''; // Reset for alternating mode
+
+            await fetchAIGeneratedStatements(currentGenderMode);
+        }
+
+        // Event listener for gender selection
+        genderRadios.forEach(radio => {
+            radio.addEventListener('change', async (event) => {
+                currentGenderMode = event.target.value;
+                initializeStatements(); // Re-initialize and fetch new statements when mode changes
+                showMessage(`Modus geändert zu: ${event.target.labels[0].textContent.split(' ist eine')[0]}`, 'success');
+                // Set initial message for the new mode after fetching
+                if (currentGenderMode === 'female') {
+                    statementDisplay.innerHTML = `Sie ist eine 10 von 10, aber sie...<br><span class="text-sm text-gray-500">(Klicke auf "Neue Aussage")</span>`;
+                } else if (currentGenderMode === 'male') {
+                    statementDisplay.innerHTML = `Er ist eine 10 von 10, aber er...<br><span class="text-sm text-gray-500">(Klicke auf "Neue Aussage")</span>`;
+                } else {
+                    statementDisplay.innerHTML = `Wähle eine Kategorie und klicke auf "Neue Aussage"!`;
+                }
+                statementDisplay.classList.remove('fade-out', 'fade-in'); // Ensure no lingering animation classes
+                statementDisplay.style.opacity = '1';
+                statementDisplay.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Function to generate and display a statement
+        async function generateStatement() {
+            loadingSpinner.classList.add('active'); // Show spinner
+            generateBtn.disabled = true; // Disable button
+
+            // Add fade-out effect and slight translateY for the text
+            statementDisplay.classList.remove('fade-in');
+            statementDisplay.classList.add('fade-out');
+
+            // Wait for the fade-out of the current statement before showing loading or new statement
+            await new Promise(resolve => setTimeout(resolve, 300)); // Match transition duration
+
+            let statementText = "";
+            let prefixHtml = "";
+            let currentPrefixGender = ""; // To track actual gender of the generated statement
+
+            // Determine which statement list to use and if a new batch needs to be fetched
+            if (currentGenderMode === 'alternating') {
+                if (lastDisplayedGender === 'male' || lastDisplayedGender === '') {
+                    // Next is female
+                    if (femaleStatementCounter >= shuffledFemaleStatements.length) {
+                        await fetchAIGeneratedStatements('female');
+                    }
+                    prefixHtml = `<span class="prefix-female">Sie ist eine 10 von 10, aber sie </span>`;
+                    statementText = shuffledFemaleStatements[femaleStatementCounter];
+                    femaleStatementCounter = (femaleStatementCounter + 1) % shuffledFemaleStatements.length;
+                    currentPrefixGender = 'female';
+                } else {
+                    // Next is male
+                    if (maleStatementCounter >= shuffledMaleStatements.length) {
+                        await fetchAIGeneratedStatements('male');
+                    }
+                    prefixHtml = `<span class="prefix-male">Er ist eine 10 von 10, aber er </span>`;
+                    statementText = shuffledMaleStatements[maleStatementCounter];
+                    maleStatementCounter = (maleStatementCounter + 1) % shuffledMaleStatements.length;
+                    currentPrefixGender = 'male';
+                }
+                lastDisplayedGender = currentPrefixGender; // Update last displayed gender
+            } else if (currentGenderMode === 'female') {
+                if (femaleStatementCounter >= shuffledFemaleStatements.length) {
+                    await fetchAIGeneratedStatements('female');
+                }
+                prefixHtml = `<span class="prefix-female">Sie ist eine 10 von 10, aber sie </span>`;
+                statementText = shuffledFemaleStatements[femaleStatementCounter];
+                femaleStatementCounter = (femaleStatementCounter + 1) % shuffledFemaleStatements.length;
+            } else if (currentGenderMode === 'male') {
+                if (maleStatementCounter >= shuffledMaleStatements.length) {
+                    await fetchAIGeneratedStatements('male');
+                }
+                prefixHtml = `<span class="prefix-male">Er ist eine 10 von 10, aber er </span>`;
+                statementText = shuffledMaleStatements[maleStatementCounter];
+                maleStatementCounter = (maleStatementCounter + 1) % shuffledMaleStatements.length;
+            }
+
+            // Fallback if AI generation failed and no statements are available
+            if (!statementText && !isGeneratingAIStatements) {
+                statementDisplay.innerHTML = "Entschuldigung, es konnten keine Aussagen generiert werden. Versuchen Sie es später erneut.";
+                loadingSpinner.classList.remove('active');
+                generateBtn.disabled = false;
+                return;
+            }
+             // Handle case where statementText might be undefined if AI call is still pending
+            if (!statementText && isGeneratingAIStatements) {
+                // This state should ideally be covered by the fetchAIGeneratedStatements loading message
+                // but as a safeguard, keep a generic "Generiere Aussagen..."
+                statementDisplay.innerHTML = "Generiere Aussagen...";
+            }
+
+
+            statementDisplay.innerHTML = `${prefixHtml}${statementText}`;
+
+            // Remove fade-out and add fade-in effect
+            statementDisplay.classList.remove('fade-out');
+            statementDisplay.classList.add('fade-in');
+
+            loadingSpinner.classList.remove('active'); // Hide spinner
+            generateBtn.disabled = false; // Enable button
+        }
+
+        // Event listener for the generate button
+        generateBtn.addEventListener('click', generateStatement);
+
+        // Initial setup on load
+        window.onload = async () => {
+            // Display initial message while AI statements are being fetched
+            statementDisplay.innerHTML = `<span class="text-sm text-gray-500">Lade initiale Aussagen...</span>`;
+            loadingSpinner.classList.add('active'); // Show spinner for initial load
+            generateBtn.disabled = true; // Disable button for initial load
+
+            await initializeStatements(); // This will call fetchAIGeneratedStatements
+
+            // Set the appropriate initial message after statements are loaded
+            loadingSpinner.classList.remove('active');
+            generateBtn.disabled = false;
+            if (currentGenderMode === 'female') {
+                statementDisplay.innerHTML = `Sie ist eine 10 von 10, aber sie...<br><span class="text-sm text-gray-500">(Klicke auf "Neue Aussage")</span>`;
+            } else if (currentGenderMode === 'male') {
+                statementDisplay.innerHTML = `Er ist eine 10 von 10, aber er...<br><span class="text-sm text-gray-500">(Klicke auf "Neue Aussage")</span>`;
+            } else {
+                statementDisplay.innerHTML = `Wähle eine Kategorie und klicke auf "Neue Aussage"!`;
+            }
+        };
+
+    </script>
+</body>
+</html>
